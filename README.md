@@ -1,8 +1,9 @@
 # OmniAgent: Native Active Perception as Reasoning for Omni-Modal Understanding
 
 <p align="center">
-  <a href="https://arxiv.org/abs/TODO">Paper</a> |
-  <a href="https://huggingface.co/harryhsing/OmniAgent-RL-7B">Model</a> |
+  <a href="https://huggingface.co/harryhsing/OmniAgent-RL-7B">RL Checkpoint</a> |
+  <a href="https://huggingface.co/harryhsing/OmniAgent-SFT-7B">SFT Checkpoint</a> |
+  <a href="recipe/sft_agent_final.yaml">Public SFT Recipe</a> |
   <a href="#citation">Citation</a>
 </p>
 
@@ -10,41 +11,43 @@
   <img src="assets/main_framework.png" width="90%"/>
 </p>
 
-> **OmniAgent** is a POMDP-based active perception framework that fundamentally decouples reasoning complexity from raw video duration. Through an iterative **Observation-Thought-Action (OTA)** cycle, a 7B agent selectively distills audio-visual signals into persistent textual memory, achieving state-of-the-art results across **10 benchmarks** — outperforming even the 10x larger Qwen2.5-VL-72B on LVBench **(50.5 vs. 47.3)**.
+> **OmniAgent** is a 7B active perception agent for omni-modal understanding. It reasons through iterative **Observation-Thought-Action (OTA)** loops and samples frames, audio, and clips on demand instead of consuming the entire stream.
 
 ---
 
 ## Highlights
 
+### Core Traits
+
+- **Native Active Perception**: the agent actively explores via on-demand `{frames, audio, clip}` actions, so reasoning cost is not tied to raw video length.
+- **Omni-Modal**: video, audio, and text are handled jointly, with audio used as a temporal anchor for visual sampling.
+- **TAURA**: entropy-steered credit assignment for long-horizon agentic RL.
+- **Test-Time Scaling**: more reasoning turns improve accuracy on long videos.
+
+### Evidence
+
 <table>
 <tr>
 <td width="50%">
 
-**Accuracy vs. Frame Count on LVBench**
+**LVBench efficiency**
 
-OmniAgent-7B outperforms Qwen2.5-VL-72B while using ~73% fewer frames (203 vs. 768), demonstrating superior efficiency in both model size and data consumption.
+OmniAgent-7B outperforms Qwen2.5-VL-72B while using about 73% fewer frames (203 vs. 768).
 
 <img src="assets/frames_lvbench_trendline.png" width="100%"/>
 
 </td>
 <td width="50%">
 
-**Test-Time Scaling on VideoMME-Long**
+**VideoMME-Long scaling**
 
-Accuracy improves monotonically with the max turn budget (+6.1%), while actual turns saturate at ~11.7 — the agent adaptively stops once it has enough evidence.
+Accuracy improves monotonically with the max turn budget (+6.1%), while actual turns saturate at about 11.7.
 
 <img src="assets/test_time_scaling_mme_long.png" width="100%"/>
 
 </td>
 </tr>
 </table>
-
-### Why OmniAgent?
-
-- **Native Active Perception**: Unlike passive models that process video uniformly, OmniAgent actively explores via on-demand `{frames, audio, clip}` actions, decoupling reasoning cost from video duration.
-- **Omni-Modal**: Natively handles video, audio, and text jointly — the agent uses auditory cues as temporal anchors to guide visual sampling.
-- **TAURA**: Entropy-steered credit assignment that resolves the advantage homogenization problem in long-horizon agentic RL.
-- **Test-Time Scaling**: Performance improves as reasoning turns increase (+6.1% on VideoMME-Long), validating adaptive computation.
 
 ### Key Results
 
@@ -62,12 +65,11 @@ Accuracy improves monotonically with the max turn budget (+6.1%), while actual t
 | | VUE-TR (Vision+Audio) | **36.5** |
 | | VUE-TR (Vision) | **46.1** |
 
----
+### Training at a Glance
 
-### Two-Stage Training
-
-1. **Cold-Start SFT**: 58K synthetic trajectories bootstrapped via teacher-model exploration (Gemini-3.0-Pro) with self-correction traces and dual-stage quality control
-2. **Agentic RL with TAURA**: Reinforcement learning with verifiable rewards (exact match for MCQ, IoU for temporal grounding, MRA for continuous tasks)
+- **Cold-Start SFT**: 58K synthetic trajectories bootstrapped via teacher-model exploration with self-correction and quality control.
+- **Agentic RL with TAURA**: reinforcement learning with verifiable rewards for MCQ, temporal grounding, and counting.
+- **Public recipe**: the sanitized SFT recipe is in `recipe/sft_agent_final.yaml`.
 
 ---
 
@@ -131,28 +133,13 @@ omniagent/
 
 ## Requirements
 
-### Hardware
+| Item | Recommended |
+|------|-------------|
+| Python | 3.11+ |
+| GPU | 1x A100 80GB for inference/single-sample eval; 8x A100 80GB for faster batch eval; 64x A100 80GB+ for training |
+| System tools | CUDA 12.6 toolchain, `ffmpeg` |
 
-| Component | Minimum | Recommended |
-|-----------|---------|-------------|
-| GPU | 1× NVIDIA A100 (40GB) | 1× A100/H100 (80GB) |
-| GPU (training) | 8× A100 (80GB) | 16+ GPUs (multi-node) |
-| RAM | 32GB | 64GB+ |
-| Disk | 30GB (model + code) | 50GB+ (with data) |
-
-> **Note:** Inference with `gpu_memory_utilization=0.6` and `tensor_parallel_size=1` requires ~40GB VRAM. Reduce `gpu_memory_utilization` or increase tensor parallelism for smaller GPUs.
-
-### Software
-
-| Package | Version |
-|---------|---------|
-| Python | ≥ 3.11 |
-| PyTorch | 2.7.0 (CUDA 12.6) |
-| flash-attn | 2.7.4.post1 |
-| vLLM | 0.9.2 |
-| Ray | 2.47.1 |
-| Gradio | 5.35.0 |
-| transformers | 4.52.4 |
+Single-GPU evaluation is supported, but throughput is lower.
 
 ---
 
@@ -230,11 +217,6 @@ DASHSCOPE_API_KEY="your-api-key-here"
 - MCQ (Multiple Choice): works normally (exact match, no API needed)
 - TR (Temporal Range): works normally (IoU computation, no API needed)
 - FF (Free-Form): returns reward = 0.0 with a warning message
-
-**How to obtain a DashScope API key:**
-1. Visit [Alibaba Cloud DashScope](https://dashscope.aliyun.com/)
-2. Register and create an API key
-3. The key is used by `verl/utils/reward_score/omni_agent.py` for LLM-as-judge scoring
 
 ### Video Root Directories (for demo and batch evaluation)
 
@@ -400,7 +382,7 @@ python demo/omniagent_inference.py \
   --answer "A"
 ```
 
-Expected output: The agent performs multi-turn reasoning (observe → think → act) and arrives at answer `A` with reward `1.0`.
+Expected output: the agent performs multi-turn reasoning (observe -> think -> act) and returns an answer with reward `1.0`.
 
 ---
 
@@ -599,7 +581,7 @@ The web demo provides:
 - Select question type (MCQ, TR, FF)
 - Configure inference parameters: temperature, top_p, top_k, max_steps, max_frames
 - Toggle dynamic step and TITO
-- View full reasoning trace (Observation → Think → Action) at each step
+- View full reasoning trace (Observation -> Think -> Action) at each step
 - Real-time step-by-step visualization of the agent's decision process
 
 ---
@@ -713,7 +695,7 @@ Set `USE_DYNAMIC_STEP=false` to always use the full `MAX_STEPS` budget regardles
 
 ### Scaling Results
 
-From the paper: +6.1% accuracy on VideoMME-Long when scaling from 12 → 52 maximum steps. Actual turns used saturate at ~11.7, showing the agent adaptively stops early when it has sufficient evidence.
+From the paper: +6.1% accuracy on VideoMME-Long when scaling from 12 -> 52 maximum steps. Actual turns used saturate at ~11.7, showing the agent adaptively stops early when it has sufficient evidence.
 
 ---
 
@@ -765,7 +747,7 @@ Returns a continuous score in `[0, 1]`. A prediction within 5% of the target sco
 
 | Issue | Cause | Solution |
 |-------|-------|----------|
-| `DASHSCOPE_API_KEY not set` warning at startup | No `.env` file or key not set | Create `.env` with your API key. Only affects FF scoring — MCQ/TR work without it |
+| `DASHSCOPE_API_KEY not set` warning at startup | No `.env` file or key not set | Create `.env` with your API key. Only affects FF scoring - MCQ/TR work without it |
 | `CUDA out of memory` during inference | GPU VRAM insufficient | Reduce `GPU_MEMORY_UTIL` (e.g., `0.5`) or use `TENSOR_PARALLEL=2` |
 | Port `7862` already in use | Previous process still running | Script auto-kills with `AUTO_KILL=true`. Manual: `lsof -ti:7862 \| xargs kill -9` |
 | `flash-attn` build fails | CUDA toolkit version mismatch | Ensure CUDA toolkit matches PyTorch CUDA (12.6). Set `CUDA_HOME=/usr/local/cuda-12.6` |

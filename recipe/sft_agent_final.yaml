@@ -7,11 +7,13 @@
 sft_agent_final:
   args:
     dataset_path:
-      - /path/to/omniagent_sft/train_LongVALE_300s.filtered.jsonl
-      - /path/to/omniagent_sft/train_LongVideoReason_300s.filtered.jsonl
-      - /path/to/omniagent_sft/train_MultiHop-EgoQA.filtered.jsonl
-      - /path/to/omniagent_sft/train_Video-Holmes.filtered.jsonl
+      - /path/to/omniagent_sft/train_LongVALE.ota_trajectories.filtered.jsonl
+      - /path/to/omniagent_sft/train_LongVideoReason.ota_trajectories.filtered.jsonl
+      - /path/to/omniagent_sft/train_MultiHop-EgoQA.ota_trajectories.filtered.jsonl
+      - /path/to/omniagent_sft/train_Video-Holmes.ota_trajectories.filtered.jsonl
+      - /path/to/omniagent_sft/train_VSI-10K.ota_trajectories.filtered.jsonl
     dataset_class:
+      - MultiTurnAgentDataset
       - MultiTurnAgentDataset
       - MultiTurnAgentDataset
       - MultiTurnAgentDataset
