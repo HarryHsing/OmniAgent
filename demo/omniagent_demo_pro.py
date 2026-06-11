@@ -65,15 +65,6 @@ KEY_RUNTIME_ENVS = [
 ]
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-VIDEOMME_ROOT = os.environ.get("OMNIAGENT_VIDEOMME_ROOT", "")
-LVBENCH_ROOT = os.environ.get("OMNIAGENT_LVBENCH_ROOT", "")
-VIDI_ROOT = os.environ.get("OMNIAGENT_VIDI_ROOT", "")
-
-
-def demo_data_path(root: str, relative_path: str) -> str:
-    if not root:
-        return ""
-    return str(Path(root) / relative_path)
 
 
 def build_allowed_paths() -> List[str]:
@@ -86,14 +77,6 @@ def build_allowed_paths() -> List[str]:
         paths.add(str((PROJECT_ROOT / video_env_tmp_dir).resolve()))
     except Exception:
         pass
-    for root in [VIDEOMME_ROOT, LVBENCH_ROOT, VIDI_ROOT]:
-        if root:
-            paths.add(str(Path(root).resolve()))
-    extra = os.environ.get("OMNIAGENT_ALLOWED_PATHS", "")
-    for item in extra.split(":"):
-        item = item.strip()
-        if item:
-            paths.add(str(Path(item).resolve()))
     return sorted(paths)
 
 import gradio as gr
@@ -871,25 +854,6 @@ def detect_dataset_name(video_path: str) -> str:
         return "Unknown"
 
     path_obj = Path(video_path)
-    try:
-        resolved_video = path_obj.resolve(strict=False)
-    except Exception:
-        resolved_video = path_obj
-
-    for dataset_name, root in [
-        ("Video-MME", VIDEOMME_ROOT),
-        ("LVBench", LVBENCH_ROOT),
-        ("VIDI", VIDI_ROOT),
-    ]:
-        if not root:
-            continue
-        try:
-            resolved_root = Path(root).resolve(strict=False)
-            resolved_video.relative_to(resolved_root)
-            return dataset_name
-        except Exception:
-            continue
-
     return "Uploaded" if path_obj.exists() else "Custom"
 
 

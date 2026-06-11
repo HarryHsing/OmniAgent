@@ -18,10 +18,6 @@ GPU_MEMORY_UTIL="${GPU_MEMORY_UTIL:-0.6}"
 SHARE="${SHARE:-}"
 DEMO_TYPE="${DEMO_TYPE:-pro}"
 AUTO_KILL="${AUTO_KILL:-true}"  # Whether to auto-kill processes occupying the port
-export OMNIAGENT_VIDEOMME_ROOT="${OMNIAGENT_VIDEOMME_ROOT:-/path/to/videomme/videos}"
-export OMNIAGENT_LVBENCH_ROOT="${OMNIAGENT_LVBENCH_ROOT:-/path/to/lvbench/videos}"
-export OMNIAGENT_VIDI_ROOT="${OMNIAGENT_VIDI_ROOT:-/path/to/vidi/videos}"
-export OMNIAGENT_ALLOWED_PATHS="${OMNIAGENT_ALLOWED_PATHS:-/path/to/data:/path/to/model}"
 
 # ============ Color Definitions ============
 RED='\033[0;31m'
