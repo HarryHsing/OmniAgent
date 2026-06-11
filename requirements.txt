@@ -13,7 +13,7 @@ peft==0.15.2
 pyarrow==20.0.0
 pybind11==3.0.0
 pylatexenc==2.10
-ray[default]==2.47.1
+ray[default]==2.55.1
 tensordict==0.6.2
 torchdata==0.11.0
 transformers==4.52.4
