@@ -2,7 +2,7 @@
 
 <p align="center">
   <a href="https://arxiv.org/abs/TODO">Paper</a> |
-  <a href="https://huggingface.co/TODO">Model</a> |
+  <a href="https://huggingface.co/harryhsing/OmniAgent-RL-7B">Model</a> |
   <a href="#citation">Citation</a>
 </p>
 
@@ -369,7 +369,7 @@ pip install -e qwen-vl-utils/
 
 `qwen-omni-utils/` handles Qwen-Omni multimodal inputs with audio, video, image, and text. `qwen-vl-utils/` handles vision-language inputs and keeps compatibility with vision-only preprocessing paths. These local forks are the recommended preprocessing entry points for OmniAgent SFT trajectories in the `raw_input` / `output` format above.
 
-The recipe records the parameter settings we used for SFT. Users may run SFT with any compatible public training codebase; [ms-swift](https://github.com/modelscope/ms-swift) is one possible reference for Qwen-Omni SFT infrastructure.
+The recipe records the parameter settings we used for SFT. The SFT checkpoint is available at [OmniAgent-SFT-7B](https://huggingface.co/harryhsing/OmniAgent-SFT-7B). Users may run SFT with any compatible public training codebase; [ms-swift](https://github.com/modelscope/ms-swift) is one possible reference for Qwen-Omni SFT infrastructure.
 
 OmniAgent uses the Qwen-Omni thinker path for agent reasoning. Audio-output / talker weights are not required for the OmniAgent reasoning loop unless your chosen SFT framework requires the full upstream checkpoint layout.
 
