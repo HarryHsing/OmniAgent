@@ -1,0 +1,39 @@
+# docker buildx build --platform linux/x86_64 -t "omniagent:ngc-th2.7.0-cu126-vllm0.9.2-ray2.47" -f docker/Dockerfile.ngc.vllm . --progress=plain
+FROM nvcr.io/nvidia/pytorch:24.09-py3
+
+# uninstall nv-pytorch fork
+RUN pip3 uninstall pytorch-quantization \
+    pytorch-triton \
+    torch \
+    torch-tensorrt \
+    torchvision \
+    xgboost transformer_engine flash_attn \
+    apex megatron-core -y
+
+RUN pip3 install torch==2.7.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cu126
+
+RUN pip3 install --no-cache-dir \
+    'accelerate==1.8.1' \
+    'codetiming==1.4.0' \
+    'datasets==3.2.0' \
+    'dill==0.3.8' \
+    'hydra-core==1.3.2' \
+    'numpy==2.2.6' \
+    'pandas==2.3.0' \
+    'peft==0.15.2' \
+    'pyarrow==20.0.0' \
+    'pybind11==3.0.0' \
+    'pylatexenc==2.10' \
+    'ray[default]==2.47.1' \
+    'tensordict==0.6.2' \
+    'transformers==4.52.4' \
+    'vllm==0.9.2' \
+    'wandb==0.21.0' \
+    'packaging==25.0' \
+    'uvicorn==0.29.0' \
+    'fastapi==0.115.14'
+
+# full dependencies
+RUN pip3 install pytest pre-commit py-spy pyext liger-kernel
+
+RUN MAX_JOBS=4 NINJA_FLAGS="-j4" pip3 install flash-attn==2.7.4.post1 --no-cache-dir --no-build-isolation
