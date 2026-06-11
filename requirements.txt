@@ -1,6 +1,6 @@
 # requirements.txt records the full set of dependencies for development
 # Versions validated against Python 3.11.11, PyTorch 2.7.0+cu126
-accelerate==1.8.1
+accelerate==1.13.0
 codetiming==1.4.0
 datasets==3.2.0
 dill==0.3.8
