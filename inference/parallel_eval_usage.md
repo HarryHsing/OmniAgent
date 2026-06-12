@@ -1,13 +1,13 @@
 # Parallel Evaluation with Gemini
 
-Ray-based parallel evaluation using `parallel_evaluate_gemini_v2.py`.
+Ray-based parallel evaluation using `parallel_evaluate_gemini.py`.
 
 ## Quick Start
 
 ```bash
 export DASHSCOPE_API_KEY="your-key-here"
 
-python inference/parallel_evaluate_gemini_v2.py \
+python inference/parallel_evaluate_gemini.py \
   --dataset_path /path/to/dataset.json \
   --video_prefix /path/to/videos \
   --processor_path checkpoints/RL \
@@ -44,7 +44,7 @@ python inference/parallel_evaluate_gemini_v2.py \
 ### 1. Standard Evaluation
 
 ```bash
-python inference/parallel_evaluate_gemini_v2.py \
+python inference/parallel_evaluate_gemini.py \
   --dataset_path /path/to/Video-MME.json \
   --video_prefix /path/to/videos \
   --processor_path checkpoints/RL \
@@ -54,7 +54,7 @@ python inference/parallel_evaluate_gemini_v2.py \
 ### 2. Use a Different Model
 
 ```bash
-python inference/parallel_evaluate_gemini_v2.py \
+python inference/parallel_evaluate_gemini.py \
   --dataset_path /path/to/dataset.json \
   --video_prefix /path/to/videos \
   --processor_path checkpoints/RL \
@@ -65,7 +65,7 @@ python inference/parallel_evaluate_gemini_v2.py \
 ### 3. Adjust Resource Limits
 
 ```bash
-python inference/parallel_evaluate_gemini_v2.py \
+python inference/parallel_evaluate_gemini.py \
   --dataset_path /path/to/dataset.json \
   --video_prefix /path/to/videos \
   --processor_path checkpoints/RL \
@@ -78,10 +78,37 @@ python inference/parallel_evaluate_gemini_v2.py \
 ### 4. Test Mode (first 100 samples)
 
 ```bash
-python inference/parallel_evaluate_gemini_v2.py \
+python inference/parallel_evaluate_gemini.py \
   --dataset_path /path/to/dataset.json \
   --video_prefix /path/to/videos \
   --processor_path checkpoints/RL \
   --max_samples 100 \
   --num_processes 8
 ```
+
+## Build SFT Trajectories
+
+For SFT data collection, run the parallel trajectory generator with an explicit `--results_path`:
+
+```bash
+python inference/parallel_evaluate_gemini.py \
+  --dataset_path /path/to/sft_seed_dataset.json \
+  --video_prefix /path/to/videos \
+  --processor_path /path/to/Qwen2.5-Omni-7B \
+  --results_path results/sft_collect.json \
+  --model gemini-3-pro-preview \
+  --num_processes 32 \
+  --sft_attempts 4
+```
+
+This writes `results/sft_collect.json` for sample-level results and `results/sft_collect_steps.jsonl` for step-level multi-turn trajectories. Use the step log as the SFT export input:
+
+```bash
+python inference/results_final_v1/filter_and_export_sft.py \
+  --input results/sft_collect_steps.jsonl \
+  --out_dir results/sft_final \
+  --base_path /path/to/video_env_tmp \
+  --max_steps 50
+```
+
+The export script keeps successful trajectories, localizes media paths with `--base_path`, and writes `*_final_sft.jsonl` under `--out_dir`.

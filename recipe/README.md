@@ -4,11 +4,11 @@ This directory contains public training recipes and notes for reproducing OmniAg
 
 ## Cold-Start SFT
 
-`sft_agent_final.yaml` is the public OmniAgent SFT reference recipe. It keeps the final training hyperparameters and replaces private dataset/checkpoint paths with placeholders.
+`sft_agent_final.yaml` is the public OmniAgent SFT reference recipe. It keeps the final training hyperparameters.
 
 Before training:
 
-1. Convert your trajectories to the SFT JSONL format described in the root `README.md`.
+1. Convert your trajectories to the SFT JSONL format described in the [root README](../README.md); for collected trajectories, see [inference/parallel_eval_usage.md](../inference/parallel_eval_usage.md).
 2. Preprocess multimodal fields with the repo-local `qwen-omni-utils/` and `qwen-vl-utils/` packages.
 3. Replace every `dataset_path` entry with your local JSONL shards.
 4. Replace `model_name_or_path` with your base Qwen-Omni checkpoint or a framework-compatible thinker-only checkpoint.

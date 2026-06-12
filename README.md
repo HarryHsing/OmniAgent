@@ -1,30 +1,67 @@
 # OmniAgent: Native Active Perception as Reasoning for Omni-Modal Understanding
 
 <p align="center">
-  <a href="https://huggingface.co/harryhsing/OmniAgent-RL-7B">RL Checkpoint</a> |
-  <a href="https://huggingface.co/harryhsing/OmniAgent-SFT-7B">SFT Checkpoint</a> |
-  <a href="recipe/sft_agent_final.yaml">Public SFT Recipe</a> |
-  <a href="#citation">Citation</a>
+  <a href="#citation"><img src="https://img.shields.io/badge/Paper-coming%20soon-blue" alt="Paper"></a>
+  <a href="#"><img src="https://img.shields.io/badge/arXiv-coming%20soon-b31b1b" alt="arXiv"></a>
+  <a href="https://huggingface.co/harryhsing/OmniAgent-RL-7B"><img src="https://img.shields.io/badge/HF-RL%20Checkpoint-yellow" alt="RL Checkpoint"></a>
+  <a href="https://huggingface.co/harryhsing/OmniAgent-SFT-7B"><img src="https://img.shields.io/badge/HF-SFT%20Checkpoint-yellow" alt="SFT Checkpoint"></a>
+  <a href="recipe/sft_agent_final.yaml"><img src="https://img.shields.io/badge/Recipe-SFT-green" alt="SFT Recipe"></a>
 </p>
 
 <p align="center">
   <img src="assets/main_framework.png" width="90%"/>
 </p>
 
-> **OmniAgent** is a 7B active perception agent for omni-modal understanding. It reasons through iterative **Observation-Thought-Action (OTA)** loops and samples frames, audio, and clips on demand instead of consuming the entire stream.
+> **OmniAgent** is the first native omni-modal agent for active perception in video understanding. It treats perception as reasoning, iteratively observing, thinking, and acting through on-demand `get_frames`, `get_audio`, and `get_clip` actions instead of consuming every frame upfront.
+
+---
+
+## News
+
+- **2026-06**: Released OmniAgent code, RL/SFT checkpoints, example data formats, and the public SFT recipe.
+- **2026-06**: Paper and arXiv links are coming soon.
+
+---
+
+## Overview
+
+Long video and omni-modal understanding often require targeted evidence rather than dense, uniform consumption of every frame. Passive "watch-it-all" models spend context on irrelevant frames, while many interactive frameworks still rely on global pre-scanning, which keeps context cost tied to video length, or delegate multimodal perception to external modules, leaving perception and reasoning split across components.
+
+OmniAgent formulates audio-visual exploration as a POMDP-based iterative Observation-Thought-Action (OTA) cycle. At each turn, the model distills the transient multimodal percept into persistent textual memory, reasons over the accumulated evidence, and chooses one structured action from `get_frames`, `get_audio`, `get_clip`, or `answer`.
+
+Through memory consolidation, raw media is purged from the active context after it is summarized, so the reasoning trace depends on information need rather than raw video duration. The environment only extracts frames, audio, or clips; all semantic perception, reasoning, and action selection are performed by the same native omni model.
+
+OmniAgent is trained with Agentic SFT and Agentic RL. TAURA provides turn-aware, entropy-steered credit assignment so long-horizon perception decisions can be optimized beyond final-answer supervision.
+
+---
+
+## Why Active Perception?
+
+- **Passive dense sampling** wastes context on evidence that may be irrelevant to the query.
+- **Global pre-scan agents** still pay an upfront video-length cost before deciding where to look.
+- **OmniAgent searches query-conditionally**, preserving only distilled textual evidence while requesting raw media on demand.
 
 ---
 
 ## Highlights
 
-### Core Traits
+- **First native omni-modal agent for active perception**: to our knowledge, OmniAgent is the first end-to-end native agentic framework that unifies perception, reasoning, and action in one omni-modal model for video tasks.
+- **Native active perception**: OmniAgent chooses what evidence to inspect next through an Observation-Thought-Action cycle.
+- **Omni-modal reasoning**: video, audio, and text are handled jointly, with audio used as a temporal anchor for visual inspection.
+- **Single native model, not tool orchestration**: the environment returns raw frames, audio, or clips; OmniAgent performs semantic perception and reasoning itself.
+- **TAURA**: turn-level entropy rescales trajectory advantages to credit pivotal discovery turns over trivial actions.
+- **Test-time scaling**: increasing the reasoning budget improves accuracy while the actual number of turns saturates adaptively.
 
-- **Native Active Perception**: the agent actively explores via on-demand `{frames, audio, clip}` actions, so reasoning cost is not tied to raw video length.
-- **Omni-Modal**: video, audio, and text are handled jointly, with audio used as a temporal anchor for visual sampling.
-- **TAURA**: entropy-steered credit assignment for long-horizon agentic RL.
-- **Test-Time Scaling**: more reasoning turns improve accuracy on long videos.
+### Training at a Glance
 
-### Evidence
+- **Agentic SFT**: 58K synthetic trajectories generated through best-of-N exploration with self-correction.
+- **Dual-stage quality control**: outcome verification filters for task success, while rationality auditing filters unsupported reasoning traces.
+- **Agentic RL with TAURA**: turn-level entropy mitigates advantage homogenization by assigning more credit to pivotal discovery turns.
+- **Public recipe**: the sanitized final SFT configuration is released at [recipe/sft_agent_final.yaml](recipe/sft_agent_final.yaml).
+
+---
+
+## Results
 
 <table>
 <tr>
@@ -41,7 +78,7 @@ OmniAgent-7B outperforms Qwen2.5-VL-72B while using about 73% fewer frames (203 
 
 **VideoMME-Long scaling**
 
-Accuracy improves monotonically with the max turn budget (+6.1%), while actual turns saturate at about 11.7.
+Accuracy improves by +6.2% as the max turn budget increases, while actual turns saturate at about 11.7.
 
 <img src="assets/test_time_scaling_mme_long.png" width="100%"/>
 
@@ -49,85 +86,150 @@ Accuracy improves monotonically with the max turn budget (+6.1%), while actual t
 </tr>
 </table>
 
-### Key Results
+### Results at a glance
 
-| | Benchmark | OmniAgent-7B |
-|:---|:---|:---:|
-| **Video Understanding** | LVBench | **50.5** |
-| | VideoMME | **67.8** |
-| | Minerva | **41.4** |
-| | MLVU | **71.1** |
-| | VSI-Bench | **46.2** |
-| **Audio-Visual Understanding** | OmniVideoBench | **37.1** |
-| | DailyOmni | **64.8** |
-| | WorldSense | **47.2** |
-| **Temporal Grounding** | LongVALE | **39.1** |
-| | VUE-TR (Vision+Audio) | **36.5** |
-| | VUE-TR (Vision) | **46.1** |
+<table width="99%" style="border-collapse: collapse;">
+<colgroup>
+<col width="15%">
+<col width="22%">
+<col width="12%">
+<col width="8%">
+<col width="17%">
+<col width="17%">
+<col width="9%">
+</colgroup>
+<thead>
+<tr>
+<th style="text-align: left; white-space: nowrap;">Task</th>
+<th style="text-align: left; white-space: nowrap;">Benchmark</th>
+<th style="text-align: center; white-space: nowrap;">Duration</th>
+<th style="text-align: center; white-space: nowrap;">Metric</th>
+<th style="text-align: center; white-space: nowrap;">Qwen2.5-Omni-7B</th>
+<th style="text-align: center; white-space: nowrap;">OmniAgent-7B</th>
+<th style="text-align: center; white-space: nowrap;">Δ</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td rowspan="6" style="text-align: left; vertical-align: middle; white-space: nowrap;"><strong>Video Understanding</strong></td>
+<td style="text-align: left; white-space: nowrap;">VideoMME (Overall)</td>
+<td style="text-align: center; white-space: nowrap;">1–60 min</td>
+<td style="text-align: center;">AVG</td>
+<td style="text-align: center;">64.8</td>
+<td style="text-align: center;"><strong>67.8</strong></td>
+<td style="text-align: center;">+3.0</td>
+</tr>
+<tr>
+<td style="text-align: left; white-space: nowrap;">VideoMME (Long)</td>
+<td style="text-align: center; white-space: nowrap;">30–60 min</td>
+<td style="text-align: center;">AVG</td>
+<td style="text-align: center;">54.8</td>
+<td style="text-align: center;"><strong>59.6</strong></td>
+<td style="text-align: center;">+4.8</td>
+</tr>
+<tr>
+<td style="text-align: left; white-space: nowrap;">VSI-Bench</td>
+<td style="text-align: center; white-space: nowrap;">1m 37s</td>
+<td style="text-align: center;">AVG</td>
+<td style="text-align: center;">35.5</td>
+<td style="text-align: center;"><strong>48.4</strong></td>
+<td style="text-align: center;">+12.9</td>
+</tr>
+<tr>
+<td style="text-align: left; white-space: nowrap;">MLVU</td>
+<td style="text-align: center; white-space: nowrap;">3–120 min</td>
+<td style="text-align: center;">M-AVG</td>
+<td style="text-align: center;">65.2</td>
+<td style="text-align: center;"><strong>71.1</strong></td>
+<td style="text-align: center;">+5.9</td>
+</tr>
+<tr>
+<td style="text-align: left; white-space: nowrap;">Minerva</td>
+<td style="text-align: center; white-space: nowrap;">2–90 min</td>
+<td style="text-align: center;">AVG</td>
+<td style="text-align: center;">33.4</td>
+<td style="text-align: center;"><strong>41.4</strong></td>
+<td style="text-align: center;">+8.0</td>
+</tr>
+<tr>
+<td style="text-align: left; white-space: nowrap;">LVBench</td>
+<td style="text-align: center; white-space: nowrap;">1h 8m</td>
+<td style="text-align: center;">AVG</td>
+<td style="text-align: center;">43.0</td>
+<td style="text-align: center;"><strong>50.5</strong></td>
+<td style="text-align: center;">+7.5</td>
+</tr>
+<tr>
+<td rowspan="3" style="text-align: left; vertical-align: middle; white-space: nowrap;"><strong>Audio-Visual Understanding</strong></td>
+<td style="text-align: left; white-space: nowrap;">DailyOmni</td>
+<td style="text-align: center; white-space: nowrap;">43s</td>
+<td style="text-align: center;">AVG</td>
+<td style="text-align: center;">60.1</td>
+<td style="text-align: center;"><strong>64.8</strong></td>
+<td style="text-align: center;">+4.7</td>
+</tr>
+<tr>
+<td style="text-align: left; white-space: nowrap;">WorldSense</td>
+<td style="text-align: center; white-space: nowrap;">2m 21s</td>
+<td style="text-align: center;">AVG</td>
+<td style="text-align: center;">45.4</td>
+<td style="text-align: center;"><strong>47.2</strong></td>
+<td style="text-align: center;">+1.8</td>
+</tr>
+<tr>
+<td style="text-align: left; white-space: nowrap;">OmniVideoBench</td>
+<td style="text-align: center; white-space: nowrap;">6m 24s</td>
+<td style="text-align: center;">AVG</td>
+<td style="text-align: center;">29.3</td>
+<td style="text-align: center;"><strong>37.1</strong></td>
+<td style="text-align: center;">+7.8</td>
+</tr>
+<tr>
+<td rowspan="3" style="text-align: left; vertical-align: middle; white-space: nowrap;"><strong>Temporal Grounding</strong></td>
+<td style="text-align: left; white-space: nowrap;">LongVALE</td>
+<td style="text-align: center; white-space: nowrap;">3m 53s</td>
+<td style="text-align: center;">IoU</td>
+<td style="text-align: center;">5.7</td>
+<td style="text-align: center;"><strong>39.1</strong></td>
+<td style="text-align: center;">+33.4</td>
+</tr>
+<tr>
+<td style="text-align: left; white-space: nowrap;">VUE-TR (Vision+Audio)</td>
+<td style="text-align: center; white-space: nowrap;">17m 46s</td>
+<td style="text-align: center;">IoU</td>
+<td style="text-align: center;">3.5</td>
+<td style="text-align: center;"><strong>36.5</strong></td>
+<td style="text-align: center;">+33.0</td>
+</tr>
+<tr>
+<td style="text-align: left; white-space: nowrap;">VUE-TR (Vision)</td>
+<td style="text-align: center; white-space: nowrap;">18m 34s</td>
+<td style="text-align: center;">IoU</td>
+<td style="text-align: center;">8.0</td>
+<td style="text-align: center;"><strong>46.1</strong></td>
+<td style="text-align: center;">+38.1</td>
+</tr>
+</tbody>
+</table>
 
-### Training at a Glance
 
-- **Cold-Start SFT**: 58K synthetic trajectories bootstrapped via teacher-model exploration with self-correction and quality control.
-- **Agentic RL with TAURA**: reinforcement learning with verifiable rewards for MCQ, temporal grounding, and counting.
-- **Public recipe**: the sanitized SFT recipe is in `recipe/sft_agent_final.yaml`.
+Key takeaways:
+
+- **Parameter and frame efficiency**: OmniAgent-7B outperforms Qwen2.5-VL-72B on LVBench (50.5 vs. 47.3) while using about 73% fewer frames.
+- **Temporal grounding**: OmniAgent improves over Qwen2.5-Omni-7B by +33.4 on LongVALE and +33.0 on VUE-TR (Vision+Audio).
+- **Audio-visual reasoning**: OmniAgent improves over Qwen2.5-Omni-7B by +4.7 on DailyOmni and +7.8 on OmniVideo.
+- **Positive test-time scaling**: VideoMME-Long improves by +6.2 as the reasoning-turn budget increases.
 
 ---
 
-## Table of Contents
+## Resources
 
-- [Project Structure](#project-structure)
-- [Requirements](#requirements)
-- [Installation](#installation)
-- [Configuration](#configuration)
-- [Data Preparation](#data-preparation)
-- [SFT Recipe and Preprocessing](#sft-recipe-and-preprocessing)
-- [Quick Start](#quick-start)
-- [Inference](#inference)
-- [Batch Evaluation](#batch-evaluation)
-- [Web Demo](#web-demo)
-- [Training](#training)
-- [Test-Time Scaling](#test-time-scaling)
-- [Reward System](#reward-system)
-- [Troubleshooting](#troubleshooting)
-- [Acknowledgement](#acknowledgement)
-- [Citation](#citation)
-- [License](#license)
-
----
-
-## Project Structure
-
-```
-omniagent/
-├── agent_system/              # Core agent logic
-│   ├── environments/          # VideoEnv, EnvManager, prompts
-│   │   ├── env_package/       # Video environment implementations
-│   │   └── prompts/           # System prompts for the agent
-│   ├── multi_turn_rollout/    # Multi-turn OTA interaction loop
-│   └── reward_manager/        # Episode-level reward aggregation
-├── verl/                      # RL training framework (maintained fork of verl)
-│   ├── trainer/               # PPO/GRPO trainer with TAURA
-│   └── utils/reward_score/    # Reward functions (MCQ, TR, FF)
-├── demo/                      # Inference, evaluation, and web demo
-│   ├── launch_demo.sh         # Web demo launcher
-│   ├── launch_eval.sh         # Batch evaluation launcher
-│   ├── launch_inference.sh    # Single-sample inference launcher
-│   ├── omniagent_demo_pro.py  # Gradio web demo
-│   ├── omniagent_eval.py      # Batch evaluation script
-│   └── omniagent_inference.py # CLI inference script
-├── examples/                  # Training launch scripts
-│   └── omniagent_train/
-│       ├── train-TAURA.sh     # TAURA (our method)
-│       └── train-GRPO.sh      # GRPO baseline
-├── recipe/                    # Public training recipes and recipe notes
-├── data/                      # Training data (SFT + RL)
-├── inference/                 # Data generation & filtering pipelines
-├── qwen-vl-utils/             # Local fork with OmniAgent modifications
-├── qwen-omni-utils/           # Local fork with OmniAgent modifications
-├── assets/                    # Example videos and figures
-├── checkpoints/               # Model weights (download separately)
-└── .env                       # API keys (create manually, gitignored)
-```
+- **Paper**: coming soon
+- **arXiv**: coming soon
+- **Models**: [OmniAgent-RL-7B](https://huggingface.co/harryhsing/OmniAgent-RL-7B), [OmniAgent-SFT-7B](https://huggingface.co/harryhsing/OmniAgent-SFT-7B)
+- **Recipe**: [SFT recipe](recipe/sft_agent_final.yaml)
+- **Examples**: [data/](data/) and [assets/](assets/)
+- **Entry points**: [demo/](demo/) for inference, evaluation, and web demo; [examples/omniagent_train/](examples/omniagent_train/) for RL training
 
 ---
 
@@ -135,8 +237,8 @@ omniagent/
 
 | Item | Recommended |
 |------|-------------|
-| Python | 3.11+ |
-| GPU | 1x A100 80GB for inference/single-sample eval; 8x A100 80GB for faster batch eval; 64x A100 80GB+ for training |
+| Python | 3.11 |
+| GPU | 1x A100 80GB for inference or single-sample eval; 8x A100 80GB for faster batch eval; 64x A100 80GB+ for training |
 | System tools | CUDA 12.6 toolchain, `ffmpeg` |
 
 Single-GPU evaluation is supported, but throughput is lower.
@@ -145,104 +247,86 @@ Single-GPU evaluation is supported, but throughput is lower.
 
 ## Installation
 
-### 1. Create Environment
-
 ```bash
 conda create -n omniagent python=3.11 -y
 conda activate omniagent
-```
 
-### 2. Verify System Dependencies
-
-```bash
-nvidia-smi  # Tested with CUDA 12.4
-nvcc --version  # Tested with CUDA 12.4
-ffmpeg -version  # Tested with ffmpeg 4.4.2
-ffprobe -version  # Included with ffmpeg
-```
-
-### 3. Install PyTorch (CUDA 12.6)
-
-```bash
 pip install torch==2.7.0 --index-url https://download.pytorch.org/whl/cu126
-```
-
-### 4. Install flash-attn (build from source, ~10 min)
-
-```bash
 pip install flash-attn==2.7.4.post1 --no-build-isolation
-```
-
-> **Tip:** If compilation fails, ensure your CUDA toolkit version matches PyTorch's CUDA version. You may need to set `CUDA_HOME=/usr/local/cuda-12.6`.
-
-### 5. Install Remaining Dependencies
-
-```bash
 pip install -r requirements.txt
-```
 
-### 6. Install Local Packages (editable mode)
-
-```bash
 pip install -e qwen-vl-utils/
 pip install -e qwen-omni-utils/
 pip install -e .
 ```
 
-> **Note:** `pip install -e .` installs the local `verl` package (OmniAgent-maintained fork). `qwen-vl-utils` and `qwen-omni-utils` are local forks with OmniAgent-specific modifications.
+If `flash-attn` fails to build, make sure the CUDA toolkit matches the PyTorch CUDA build. For CUDA 12.6:
 
-### 7. Verify Installation
+```bash
+export CUDA_HOME=/usr/local/cuda-12.6
+```
+
+Verify the local packages:
 
 ```bash
 python -c "import verl; import vllm; import flash_attn; print('All imports OK')"
 ```
 
----
-
-## Configuration
-
-### `.env` File
-
-Create a `.env` file in the project root directory:
-
-```bash
-# Required for Free-Form (FF) LLM-as-judge scoring
-DASHSCOPE_API_KEY="your-api-key-here"
-
-# Optional: custom API endpoint (default shown below)
-# DASHSCOPE_BASE_URL="https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-```
-
-**Behavior without API key:**
-- MCQ (Multiple Choice): works normally (exact match, no API needed)
-- TR (Temporal Range): works normally (IoU computation, no API needed)
-- FF (Free-Form): returns reward = 0.0 with a warning message
-
-### Video Root Directories (for demo and batch evaluation)
-
-Set these environment variables to point to your video datasets:
-
-```bash
-export OMNIAGENT_VIDEOMME_ROOT=/path/to/videomme/videos
-export OMNIAGENT_LVBENCH_ROOT=/path/to/lvbench/videos
-export OMNIAGENT_VIDI_ROOT=/path/to/vidi/videos
-export OMNIAGENT_ALLOWED_PATHS="/path/to/data:/path/to/models"
-```
-
-| Variable | Description |
-|----------|-------------|
-| `OMNIAGENT_VIDEOMME_ROOT` | Root directory for VideoMME video files |
-| `OMNIAGENT_LVBENCH_ROOT` | Root directory for LVBench video files |
-| `OMNIAGENT_VIDI_ROOT` | Root directory for VIDI video files |
-| `OMNIAGENT_ALLOWED_PATHS` | Colon-separated paths that vLLM is allowed to access |
+Download the released checkpoint from Hugging Face and place or symlink it as `checkpoints/RL` for the examples below.
 
 ---
 
-## Data Preparation
+## Quick Start
 
-### Evaluation / Inference Data Format
+### Single-Sample Inference
 
-Evaluation and single-sample inference use a simple JSONL format (one JSON object per line):
+```bash
+bash demo/launch_inference.sh checkpoints/RL assets/example_video_mcq.mp4
+```
+
+The script accepts environment variables for the question, answer, and question type:
+
+```bash
+MODEL_PATH=checkpoints/RL \
+VIDEO_PATH=assets/example_video_mcq.mp4 \
+QUESTION='Who or what lauds "Immigrant Diaries" as "A SURE FIRE HIT", according to the video?' \
+QUESTION_TYPE=MCQ \
+OPTIONS="A. Remote Goat.\nB. The New York Times.\nC. Variety.\nD. IndieWire." \
+ANSWER="A" \
+  bash demo/launch_inference.sh
+```
+
+### Web Demo
+
+```bash
+bash demo/launch_demo.sh checkpoints/RL
+```
+
+The demo starts at `http://localhost:7862` by default. It supports built-in examples and uploaded videos directly.
+
+Useful runtime overrides:
+
+```bash
+MODEL_PATH=checkpoints/RL PORT=8080 TENSOR_PARALLEL=2 GPU_MEMORY_UTIL=0.8 \
+  bash demo/launch_demo.sh
+```
+
+### Batch Evaluation
+
+```bash
+GPU_IDS=0,1,2,3 \
+MODEL_PATH=checkpoints/RL \
+DATASET_JSONL=/path/to/dataset.jsonl \
+  bash demo/launch_eval.sh
+```
+
+The launcher writes `results.jsonl`, `summary.json`, `summary.csv`, and logs under `eval_output/`. See [data/example_eval.jsonl](data/example_eval.jsonl) for the expected schema.
+
+---
+
+## Data Format
+
+Evaluation and inference use one JSON object per line:
 
 ```json
 {
@@ -254,28 +338,16 @@ Evaluation and single-sample inference use a simple JSONL format (one JSON objec
 }
 ```
 
-| Field | Type | Required | Description |
-|-------|------|----------|-------------|
-| `video` | str | Yes | Path to video file (absolute or relative to dataset root) |
-| `question_type` | str | Yes | Question type: `MCQ`, `TR`, `FF`, or `SIZE` |
-| `question` | str | Yes | Question text |
-| `options` | list | MCQ only | Option list: `["A. ...", "B. ...", "C. ...", "D. ..."]`. Use `[]` or `null` for TR/FF/SIZE |
-| `answer` | str | Yes | Ground truth (see format below) |
-| `domain` | str | No | Optional content domain (e.g., Entertainment, Sports) |
+Supported answer formats:
 
-### Answer Format by Question Type
+| Type | Answer format | Example |
+|------|---------------|---------|
+| `MCQ` | single uppercase letter | `"A"` |
+| `TR` | one or more temporal spans | `"[[42.5, 47.8]]"` |
+| `FF` | free-form text | `"White"` |
+| `NUM` / `SIZE` | numeric string | `"4"` |
 
-| Type | Answer Format | Example |
-|------|--------------|---------|
-| MCQ | Single letter | `"A"` |
-| TR (single span) | Nested list `[[start, end]]` | `"[[42.5, 47.8]]"` |
-| TR (multi-span) | Multiple ranges `[[s1,e1],[s2,e2],...]` | `"[[15.2, 28.6], [52.0, 61.4]]"` |
-| FF | Free-form text | `"White"` |
-| SIZE | Numeric string | `"4"` |
-
-### RL Training Data Format
-
-RL training data extends the evaluation format with additional metadata:
+RL training data extends the same fields with video metadata and trajectory metadata:
 
 ```json
 {
@@ -294,313 +366,24 @@ RL training data extends the evaluation format with additional metadata:
 }
 ```
 
-| Field | Type | Description |
-|-------|------|-------------|
-| `prompt` | list | Placeholder message list (required by verl trainer) |
-| `question_type` | str | Type with dataset suffix (e.g., `MCQ_LongVR-Short`, `TR_LongVALE-Short`, `SIZE_VSI`). Code extracts the major type via `.split("_", 1)[0].upper()` |
-| `video` | str | Path to video file |
-| `fps` | float | Video frame rate |
-| `duration_seconds` | float | Video duration in seconds |
-| `has_audio` | bool | Whether the video has an audio track |
-| `data_source` | str | Data source tag (e.g., `"agent"`) |
-| `ability` | str | Ability category (e.g., `"agent"`) |
-| `extra_info` | dict | Metadata: source trajectory ID, error reason |
+SFT data stores complete multi-turn trajectories. Each line is one step of a trajectory and contains `raw_input`, the assistant `output`, step-level reward metadata, and the final `episode_reward`.
 
-> **Note:** RL training uses MCQ, TR, and SIZE types. FF is not used during training.
-
-### SFT Training Data Format
-
-SFT data stores complete agent trajectories. Each line is one step of a trajectory:
-
-```json
-{
-  "question_id": "example_001",
-  "traj_id": "a1b2c3d4-e5f6-...",
-  "step": 1,
-  "raw_input": [{"role": "system", "content": [...]}, {"role": "user", "content": [...]}],
-  "output": "{\"observation\": \"...\", \"think\": \"...\", \"confidence\": 0.3, \"action\": {\"type\": \"get_frames\", ...}}",
-  "step_reward": 0.0,
-  "done": "False",
-  "extra_info": {"video": "...", "question_type": "MCQ", "answer": "B", "won": false, "is_action_valid": "True", "reward": 0.0, ...},
-  "episode_reward": 1.0
-}
-```
-
-| Field | Type | Description |
-|-------|------|-------------|
-| `question_id` | str | Sample identifier |
-| `traj_id` | str | UUID grouping all steps of one trajectory |
-| `step` | int | Step number within the trajectory (1-indexed) |
-| `raw_input` | list | Full conversation history up to this step |
-| `output` | str | Agent's JSON response: `{observation, think, confidence, action}` |
-| `step_reward` | float | Reward for this step (typically 0 until final step) |
-| `done` | str | `"True"` or `"False"` — whether this step ends the episode |
-| `extra_info` | dict | Metadata: video path, question, answer, `won`, `is_action_valid`, `reward`, `token_stats`, `env_config` |
-| `episode_reward` | float | Total reward for the full trajectory |
-
-### SFT Recipe and Preprocessing
-
-The public cold-start SFT recipe is provided at `recipe/sft_agent_final.yaml`. It is a sanitized version of the final SFT configuration: private dataset paths and internal checkpoint paths are replaced with placeholders, while the main optimization settings are kept.
-
-For SFT data preprocessing, use the repo-local utility packages installed in editable mode:
-
-```bash
-pip install -e qwen-omni-utils/
-pip install -e qwen-vl-utils/
-```
-
-`qwen-omni-utils/` handles Qwen-Omni multimodal inputs with audio, video, image, and text. `qwen-vl-utils/` handles vision-language inputs and keeps compatibility with vision-only preprocessing paths. These local forks are the recommended preprocessing entry points for OmniAgent SFT trajectories in the `raw_input` / `output` format above.
-
-The recipe records the parameter settings we used for SFT. The SFT checkpoint is available at [OmniAgent-SFT-7B](https://huggingface.co/harryhsing/OmniAgent-SFT-7B). Users may run SFT with any compatible public training codebase; [ms-swift](https://github.com/modelscope/ms-swift) is one possible reference for Qwen-Omni SFT infrastructure.
-
-OmniAgent uses the Qwen-Omni thinker path for agent reasoning. Audio-output / talker weights are not required for the OmniAgent reasoning loop unless your chosen SFT framework requires the full upstream checkpoint layout.
-
-### Example Files
+Example files:
 
 | File | Description |
 |------|-------------|
-| `data/example_eval.jsonl` | Evaluation dataset (2 MCQ + 2 TR + 2 SIZE) |
-| `data/example_train_rl.jsonl` | RL training format (3 MCQ + 2 TR + 1 SIZE) |
-| `data/example_train_sft.jsonl` | SFT training format (3 trajectories: MCQ 3-turn, TR 4-turn, SIZE 5-turn) |
-| `assets/example_video_mcq.mp4` | Example video for MCQ inference |
-| `assets/example_video_tr.mp4` | Example video for TR inference |
-| `assets/example_video_ff.mp4` | Example video for FF inference |
-
----
-
-## Quick Start
-
-After installation, verify everything works with a single inference:
-
-```bash
-python demo/omniagent_inference.py \
-  --model_path checkpoints/RL \
-  --video_path assets/example_video_mcq.mp4 \
-  --question 'Who or what lauds "Immigrant Diaries" as "A SURE FIRE HIT", according to the video?' \
-  --question_type MCQ \
-  --options "A. Remote Goat.\nB. The New York Times.\nC. Variety.\nD. IndieWire." \
-  --answer "A"
-```
-
-Expected output: the agent performs multi-turn reasoning (observe -> think -> act) and returns an answer with reward `1.0`.
-
----
-
-## Inference
-
-### Single-Sample CLI
-
-```bash
-bash demo/launch_inference.sh /path/to/model /path/to/video.mp4
-```
-
-Or with environment variables:
-
-```bash
-MODEL_PATH=checkpoints/RL \
-VIDEO_PATH=assets/example_video_mcq.mp4 \
-QUESTION='Who or what lauds "Immigrant Diaries" as "A SURE FIRE HIT"?' \
-QUESTION_TYPE=MCQ \
-OPTIONS="A. Remote Goat.\nB. The New York Times.\nC. Variety.\nD. IndieWire." \
-ANSWER="A" \
-  bash demo/launch_inference.sh
-```
-
-### Shell Script Parameters (`launch_inference.sh`)
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MODEL_PATH` | **(required)** | Path to model checkpoint directory |
-| `VIDEO_PATH` | **(required)** | Path to input video file |
-| `QUESTION` | — | Question text |
-| `ANSWER` | — | Ground truth answer (for reward computation) |
-| `QUESTION_TYPE` | `MCQ` | One of: `MCQ`, `TR`, `FF` |
-| `OPTIONS` | — | Newline-separated options (e.g., `"A. Foo\nB. Bar\nC. Baz\nD. Qux"`) |
-| `OUTPUT_JSON` | `./inference_output/latest_run.json` | Path to save the result JSON |
-
-### Advanced Parameters
-
-Additional parameters can be appended after the shell script. These are passed directly to `omniagent_inference.py`:
-
-```bash
-bash demo/launch_inference.sh checkpoints/RL video.mp4 \
-  --max_steps 32 --dynamic_step --temperature 1.0
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--max_steps` | `32` | Maximum reasoning turns |
-| `--max_frames_len` | `60` | Maximum frames per `get_frames` action |
-| `--max_audio_len` | `300` | Maximum audio duration (seconds) per `get_audio` |
-| `--max_clip_len` | `60` | Maximum clip duration (seconds) per `get_clip` |
-| `--mode` | `OmniAgent` | Agent mode |
-| `--dynamic_step` | off | Enable dynamic step limit based on video duration |
-| `--no_dynamic_step` | — | Explicitly disable dynamic step |
-| `--use_tito` | off | Enable Test-Time Interaction Optimization |
-| `--temperature` | `1.0` | Sampling temperature (**always use 1.0**) |
-| `--top_p` | `0.95` | Top-p (nucleus) sampling |
-| `--top_k` | `20` | Top-k sampling |
-| `--tensor_parallel_size` | `1` | Tensor parallelism for vLLM |
-| `--gpu_memory_utilization` | `0.6` | vLLM GPU memory fraction (0.0–1.0) |
-| `--max_model_len` | `131072` | Maximum sequence length for vLLM |
-
-### Examples by Question Type
-
-**MCQ (Multiple Choice):**
-```bash
-MODEL_PATH=checkpoints/RL VIDEO_PATH=assets/example_video_mcq.mp4 \
-QUESTION='Who or what lauds "Immigrant Diaries" as "A SURE FIRE HIT", according to the video?' \
-QUESTION_TYPE=MCQ \
-OPTIONS="A. Remote Goat.\nB. The New York Times.\nC. Variety.\nD. IndieWire." \
-ANSWER="A" \
-  bash demo/launch_inference.sh
-```
-
-**TR (Temporal Range):**
-```bash
-MODEL_PATH=checkpoints/RL VIDEO_PATH=assets/example_video_tr.mp4 \
-QUESTION='What are all the time ranges corresponding to the text query: "A man with tousled dark hair..."?' \
-QUESTION_TYPE=TR \
-ANSWER="[51.72, 62.92]" \
-  bash demo/launch_inference.sh
-```
-
-**FF (Free-Form):**
-```bash
-MODEL_PATH=checkpoints/RL VIDEO_PATH=assets/example_video_ff.mp4 \
-QUESTION="During the montage, what color was the horse that the boy in yellow is riding?" \
-QUESTION_TYPE=FF \
-ANSWER="White" \
-  bash demo/launch_inference.sh
-```
-
----
-
-## Batch Evaluation
-
-### Launch
-
-```bash
-GPU_IDS=0,1,2,3 \
-MODEL_PATH=checkpoints/RL \
-DATASET_JSONL=/path/to/dataset.jsonl \
-  bash demo/launch_eval.sh
-```
-
-### Parameters
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MODEL_PATH` | **(required)** | Path to model checkpoint |
-| `DATASET_JSONL` | **(required)** | Path to evaluation dataset (.jsonl) |
-| `GPU_IDS` | `0` | Comma-separated GPU IDs (e.g., `0,1,2,3`) |
-| `OUTPUT_DIR` | `./eval_output/auto` | Output directory. `auto` generates a descriptive name |
-| `MAX_SAMPLES` | `-1` | Number of samples to evaluate (`-1` = all) |
-| `MAX_STEPS` | `32` | Maximum reasoning turns per sample |
-| `MAX_FRAMES_LEN` | `60` | Maximum frames per `get_frames` action |
-| `MAX_AUDIO_LEN` | `300` | Maximum audio duration (seconds) per `get_audio` action |
-| `MAX_CLIP_LEN` | `60` | Maximum clip duration (seconds) per `get_clip` action |
-| `MODE` | `OmniAgent` | Agent mode |
-| `TEMPERATURE` | `1.0` | Sampling temperature (**always use 1.0**) |
-| `TOP_P` | `0.95` | Top-p (nucleus) sampling |
-| `TOP_K` | `20` | Top-k sampling |
-| `USE_TITO` | `false` | Enable Test-Time Interaction Optimization |
-| `USE_DYNAMIC_STEP` | `true` | Enable dynamic step limit based on video duration |
-
-Additional arguments can be appended after the shell script and are passed to `omniagent_eval.py`:
-
-```bash
-bash demo/launch_eval.sh --tensor_parallel_size 2 --gpu_memory_utilization 0.8
-```
-
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `--tensor_parallel_size` | `1` | Tensor parallelism for vLLM |
-| `--gpu_memory_utilization` | `0.6` | vLLM GPU memory fraction (0.0–1.0) |
-| `--max_model_len` | `131072` | Maximum sequence length for vLLM |
-| `--sample_indices` | — | Comma-separated indices to evaluate specific samples |
-
-### Output Structure
-
-When `OUTPUT_DIR=./eval_output/auto`, the script auto-generates a descriptive directory name:
-
-```
-eval_output/
-└── dataset__RL__full__s32_f60_a300_c60_OmniAgent__dyn1_tito0__20260601_120000/
-    ├── results.jsonl       # Per-sample detailed results
-    ├── summary.json        # Aggregate metrics (accuracy, avg tokens, etc.)
-    ├── summary.csv         # Same metrics in CSV format
-    ├── run.log             # Full execution log
-    └── progress.log        # Progress-filtered log (for monitoring)
-```
-
-### Test-Time Scaling Experiment
-
-```bash
-for steps in 12 22 32 42 52; do
-  MAX_STEPS=$steps GPU_IDS=0,1,2,3 \
-  MODEL_PATH=checkpoints/RL \
-  DATASET_JSONL=/path/to/dataset.jsonl \
-    bash demo/launch_eval.sh
-done
-```
-
----
-
-## Web Demo
-
-### Launch
-
-```bash
-# Simplest: pass model path as argument
-bash demo/launch_demo.sh checkpoints/RL
-
-# With custom settings
-MODEL_PATH=checkpoints/RL PORT=8080 TENSOR_PARALLEL=2 \
-  GPU_MEMORY_UTIL=0.8 bash demo/launch_demo.sh
-```
-
-Access the demo at `http://localhost:7862` (or your custom port) after startup.
-
-### Parameters
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `MODEL_PATH` | **(required)** | Path to model checkpoint (1st positional arg or env var) |
-| `HOST` | `0.0.0.0` | Server bind address |
-| `PORT` | `7862` | Server port |
-| `TENSOR_PARALLEL` | `1` | Tensor parallelism size (use 2+ for multi-GPU) |
-| `GPU_MEMORY_UTIL` | `0.6` | vLLM GPU memory utilization (0.0–1.0) |
-| `DEMO_TYPE` | `pro` | Demo variant |
-| `AUTO_KILL` | `true` | Auto-kill processes occupying the port on startup |
-
-### Features
-
-The web demo provides:
-- Upload any video file and ask questions
-- Select question type (MCQ, TR, FF)
-- Configure inference parameters: temperature, top_p, top_k, max_steps, max_frames
-- Toggle dynamic step and TITO
-- View full reasoning trace (Observation -> Think -> Action) at each step
-- Real-time step-by-step visualization of the agent's decision process
+| [data/example_eval.jsonl](data/example_eval.jsonl) | Evaluation schema examples |
+| [data/example_train_rl.jsonl](data/example_train_rl.jsonl) | RL training format examples |
+| [data/example_train_sft.jsonl](data/example_train_sft.jsonl) | SFT trajectory format examples |
+| [assets/example_video_mcq.mp4](assets/example_video_mcq.mp4) | MCQ demo video |
+| [assets/example_video_tr.mp4](assets/example_video_tr.mp4) | Temporal grounding demo video |
+| [assets/example_video_ff.mp4](assets/example_video_ff.mp4) | Free-form demo video |
 
 ---
 
 ## Training
 
-### Prerequisites
-
-- **GPU Cluster**: 8+ GPUs (A100 80GB recommended), multi-node supported
-- **Shared Filesystem**: All nodes must access the same data paths (for example, NFS or another shared filesystem)
-- **WandB** (optional): `export WANDB_API_KEY=your-key` for experiment tracking
-
-### Cold-Start SFT
-
-Use `recipe/sft_agent_final.yaml` as the public SFT reference recipe. It records the final OmniAgent SFT hyperparameters and uses placeholder paths that should be replaced with your local SFT JSONL shards and base Qwen-Omni checkpoint.
-
-The recipe is intended to document the SFT parameters, not to prescribe a specific trainer. Users can reproduce the SFT stage with a compatible public framework such as [ms-swift](https://github.com/modelscope/ms-swift), or another Qwen-Omni SFT stack, by applying the same dataset format and hyperparameters.
-
-### TAURA (Our Method)
+### TAURA
 
 ```bash
 cd examples/omniagent_train
@@ -622,140 +405,127 @@ MODEL_BASE_PATH=/path/to/models \
   bash train-GRPO.sh
 ```
 
-### Dry Run (verify config without launching)
+Use dry run mode to verify paths and launch configuration:
 
 ```bash
 DRY_RUN=1 bash train-TAURA.sh
 ```
 
-### Key Hyperparameters
+Key training knobs:
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| `TRAIN_FILE` | **(required)** | Path to training data JSONL |
-| `VAL_FILE` | **(required)** | Path to validation data JSONL |
-| `MODEL_BASE_PATH` | **(required)** | Directory containing the base model |
-| `train_data_size` | `32` | Prompts per training iteration |
-| `N` | `8` | Rollouts per prompt (`total_batch = train_data_size × N`) |
-| `max_steps` | `22` | Maximum agent turns during training rollout |
-| `MIN_MAX_STEPS` | `5` | Dynamic step lower bound |
-| `max_frames_len` | `60` | Maximum frames per `get_frames` action |
-| `max_audio_len` | `300` | Maximum audio duration (seconds) per `get_audio` |
-| `max_clip_len` | `60` | Maximum clip duration (seconds) per `get_clip` |
-| `TP` | `1` | Tensor parallelism size |
-| `RETRY_ON_FORMAT_ERROR` | `True` | Retry trajectories that have format errors |
-| `USE_DYNAMIC_STEP` | `True` | Enable dynamic step limit |
-| `ABS_ON_POLICY` | `True` | Absolute on-policy training mode |
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `TRAIN_FILE` | `/path/to/train_data.jsonl` | Training JSONL |
+| `VAL_FILE` | `/path/to/val_data.jsonl` | Validation JSONL |
+| `MODEL_BASE_PATH` | `/path/to/models` | Directory containing `OmniAgent_SFT` |
 | `MICRO_RATIO` | `4` | Samples per GPU for vLLM rollout |
-| Learning rate | `1e-6` | Actor learning rate |
-| `total_epochs` | `1` | Number of training epochs |
-| `save_freq` | `10` | Checkpoint save frequency (in training steps) |
-| `WANDB_API_KEY` | — | WandB API key for logging (optional) |
+| `USE_DYNAMIC_STEP` | `True` | Enable duration-adaptive step limit |
+| `MIN_MAX_STEPS` | `5` | Dynamic step lower bound |
+| `WANDB_API_KEY` | empty | Optional experiment tracking |
 
-### Multi-Node Training
-
-The training script automatically handles multi-node setup:
-
-- **Head node** (`NODE_RANK=0`): Starts Ray cluster and launches training
-- **Worker nodes** (`NODE_RANK>0`): Join the Ray cluster automatically
-
-The script auto-detects cluster topology via environment variables:
-- `MLP_WORKER_NUM` / `WORLD_SIZE`: Total number of nodes
-- `MLP_WORKER_0_HOST` / `MASTER_ADDR`: Head node address
-- `MLP_WORKER_0_PORT` / `MASTER_PORT`: Head node port
-- `MLP_WORKER_RACK_RANK_INDEX` / `RANK`: Current node rank
+The training scripts support multi-node Ray launch through common cluster environment variables such as `WORLD_SIZE`, `RANK`, `MASTER_ADDR`, and `MASTER_PORT`.
 
 ---
 
 ## Test-Time Scaling
 
-OmniAgent supports test-time scaling: increasing the maximum reasoning turns at inference improves accuracy monotonically.
+OmniAgent can spend more reasoning turns at inference time. With `USE_DYNAMIC_STEP=true`, the effective step budget adapts to video duration:
 
-### Dynamic Step
-
-When `USE_DYNAMIC_STEP=true` (default), the effective step limit adapts to video duration:
-
-```
+```text
 effective_max_steps = min(MIN_MAX_STEPS + int(duration / max_clip_len), MAX_STEPS)
 ```
 
-**Examples:**
-| Video Duration | max_clip_len | Effective Steps (MAX_STEPS=32) |
-|----------------|-------------|-------------------------------|
-| 60s | 60 | min(5 + 1, 32) = 6 |
-| 288s | 60 | min(5 + 4, 32) = 9 |
-| 600s | 60 | min(5 + 10, 32) = 15 |
-| 1800s | 60 | min(5 + 30, 32) = 32 |
+For the paper setting, scaling the max turn budget from 6 to 52 improves VideoMME-Long accuracy by +6.2%, while the actual number of turns saturates around 11.7.
 
-### Disabling Dynamic Step
+On LVBench, average turns grow only mildly from 8.5 to 12.5 as videos become much longer, while turns per hour drops sharply. This indicates that compute follows information need rather than video duration.
 
-Set `USE_DYNAMIC_STEP=false` to always use the full `MAX_STEPS` budget regardless of video length. This is useful for:
-- Short videos that need more reasoning turns
-- Ablation studies comparing fixed vs. dynamic budgets
+To run a simple scaling sweep:
 
-### Scaling Results
-
-From the paper: +6.1% accuracy on VideoMME-Long when scaling from 12 -> 52 maximum steps. Actual turns used saturate at ~11.7, showing the agent adaptively stops early when it has sufficient evidence.
+```bash
+for steps in 12 22 32 42 52; do
+  MAX_STEPS=$steps GPU_IDS=0,1,2,3 MODEL_PATH=checkpoints/RL \
+  DATASET_JSONL=/path/to/dataset.jsonl bash demo/launch_eval.sh
+done
+```
 
 ---
 
 ## Reward System
 
-OmniAgent uses reward functions corresponding to the question types:
+OmniAgent uses question-type-specific rewards:
 
-| Type | Reward Function | Range | External API |
-|------|----------------|-------|--------------|
-| **MCQ** | Exact match (letter) | {0, 1} | Not required |
-| **TR** | IoU of temporal ranges | [0, 1] continuous | Not required |
-| **FF** | LLM-as-judge via DashScope | {0, 1} | Required (`DASHSCOPE_API_KEY`) |
-| **SIZE** | Mean relative accuracy | [0, 1] continuous | Not required |
+| Type | Reward | External API |
+|------|--------|--------------|
+| `MCQ` | exact match on option letter | No |
+| `TR` | temporal IoU | No |
+| `FF` | LLM-as-judge semantic match | Yes, `DASHSCOPE_API_KEY` |
+| `NUM` / `SIZE` | numeric relative accuracy | No |
 
-### MCQ (Multiple Choice Questions)
+Without `DASHSCOPE_API_KEY`, free-form (`FF`) reward defaults to `0.0`; MCQ, TR, NUM, and SIZE remain usable.
 
-Direct string comparison of the predicted letter against the ground-truth letter. Case-insensitive.
+Create a `.env` file if you need FF reward scoring:
 
-### TR (Temporal Range)
-
-Computes Intersection-over-Union (IoU) between predicted temporal range `[pred_start, pred_end]` and ground-truth range `[gt_start, gt_end]`:
-
+```bash
+DASHSCOPE_API_KEY="your-api-key-here"
 ```
-IoU = intersection_length / union_length
-```
-
-### FF (Free-Form)
-
-Sends `(question, predicted_answer, ground_truth)` to an LLM judge via the DashScope API. The judge evaluates semantic consistency and returns:
-- `1` if the predicted answer is consistent with the ground truth
-- `0` otherwise
-
-**Without `DASHSCOPE_API_KEY`**: FF scoring defaults to `0.0` with a printed warning. MCQ and TR scoring are unaffected.
-
-### SIZE (Numeric / Counting)
-
-Evaluates numeric predictions using Mean Relative Accuracy (MRA) across multiple tolerance thresholds (50%–95%):
-
-```
-relative_error = |pred - target| / (|target| + eps)
-MRA = mean(relative_error < (1 - threshold) for threshold in [0.50, 0.55, ..., 0.95])
-```
-
-Returns a continuous score in `[0, 1]`. A prediction within 5% of the target scores `1.0`.
 
 ---
 
-## Troubleshooting
+## SFT Recipe and Preprocessing
 
-| Issue | Cause | Solution |
-|-------|-------|----------|
-| `DASHSCOPE_API_KEY not set` warning at startup | No `.env` file or key not set | Create `.env` with your API key. Only affects FF scoring - MCQ/TR work without it |
-| `CUDA out of memory` during inference | GPU VRAM insufficient | Reduce `GPU_MEMORY_UTIL` (e.g., `0.5`) or use `TENSOR_PARALLEL=2` |
-| Port `7862` already in use | Previous process still running | Script auto-kills with `AUTO_KILL=true`. Manual: `lsof -ti:7862 \| xargs kill -9` |
-| `flash-attn` build fails | CUDA toolkit version mismatch | Ensure CUDA toolkit matches PyTorch CUDA (12.6). Set `CUDA_HOME=/usr/local/cuda-12.6` |
-| Ray cluster nodes not joining | Network issue between nodes | Verify `MASTER_ADDR` is reachable from workers. Check firewall rules |
-| Dynamic step too low for long videos | Formula caps at `MIN_MAX_STEPS + duration/clip_len` | Set `USE_DYNAMIC_STEP=false` to use full `MAX_STEPS`, or reduce `MAX_CLIP_LEN` |
-| vLLM `max_model_len` error | Sequence too long for allocated memory | Reduce `max_num_batched_tokens` or increase `gpu_memory_utilization` |
-| `ModuleNotFoundError: verl` | Local package not installed | Run `pip install -e .` from project root |
-| Training OOM on large batches | Too many samples per GPU | Reduce `MICRO_RATIO` (default 4) or increase tensor parallelism |
+The public cold-start SFT recipe is [recipe/sft_agent_final.yaml](recipe/sft_agent_final.yaml).
+
+For data preprocessing, use the repo-local utility packages:
+
+```bash
+pip install -e qwen-omni-utils/
+pip install -e qwen-vl-utils/
+```
+
+The recipe documents the parameter settings we used; it does not require a specific public trainer. Users may reproduce SFT with any compatible Qwen-Omni SFT stack. [ms-swift](https://github.com/modelscope/ms-swift) is one possible reference implementation.
+
+For SFT data, collect multi-turn step logs with the trajectory collection utilities under `inference/`; the collection scripts write `*_steps.jsonl` next to the sample-level results JSON. Then run `inference/results_final_v1/filter_and_export_sft.py` to clean those trajectories and export training-ready JSONL. See [inference/parallel_eval_usage.md](inference/parallel_eval_usage.md) for the command flow.
+
+---
+
+## FAQ and Troubleshooting
+
+**What should I put in `DATASET_JSONL`?**
+
+Prepare a local JSONL file following the schema in [data/example_eval.jsonl](data/example_eval.jsonl), and point each `video` field to a video path available in your environment.
+
+**Can I run evaluation on one GPU?**
+
+Yes. Single-GPU evaluation is supported, but batch throughput is lower. We recommend 8x A100 80GB for faster batch evaluation.
+
+**Why is FF reward always `0.0`?**
+
+Free-form (`FF`) reward uses an LLM judge. Set `DASHSCOPE_API_KEY` in `.env` to enable it. MCQ, TR, NUM, and SIZE scoring do not require this key.
+
+**Is OmniAgent a tool-using system?**
+
+No. The environment only returns raw media segments. OmniAgent itself performs semantic perception, reasoning, and action selection.
+
+**Why does the README call OmniAgent "first"?**
+
+The paper positions OmniAgent as the first native omni-modal agent for POMDP-based active perception, and as the first end-to-end native agentic framework that unifies perception, reasoning, and action in one model for omni-modal video tasks.
+
+**Do I need Qwen-Omni talker weights for SFT?**
+
+OmniAgent uses the Qwen-Omni thinker path for agent reasoning. Audio-output / talker weights are not required for the OmniAgent reasoning loop unless your SFT framework expects the full upstream checkpoint layout.
+
+**Can the web demo use uploaded videos directly?**
+
+Yes. The web demo supports built-in examples and uploaded local videos directly.
+
+| Issue | Fix |
+|-------|-----|
+| `flash-attn` build fails | Set `CUDA_HOME=/usr/local/cuda-12.6` and rebuild |
+| `CUDA out of memory` | Lower `GPU_MEMORY_UTIL` or increase tensor parallelism |
+| `ModuleNotFoundError: verl` | Run `pip install -e .` from the repo root |
+| Port `7862` already in use | Stop the old demo process or let `AUTO_KILL=true` handle it |
+| FF rewards stay at `0.0` | Set `DASHSCOPE_API_KEY` in `.env` |
+| Training OOM | Reduce `MICRO_RATIO` or use more GPUs |
 
 ---
 
