@@ -10,7 +10,7 @@ export DASHSCOPE_API_KEY="your-key-here"
 python inference/parallel_evaluate_gemini.py \
   --dataset_path /path/to/dataset.json \
   --video_prefix /path/to/videos \
-  --processor_path checkpoints/RL \
+  --processor_path checkpoints/OmniAgent-RL-7B \
   --num_processes 32 \
   --model gemini-3-pro-preview \
   --max_steps 32 \
@@ -47,7 +47,7 @@ python inference/parallel_evaluate_gemini.py \
 python inference/parallel_evaluate_gemini.py \
   --dataset_path /path/to/Video-MME.json \
   --video_prefix /path/to/videos \
-  --processor_path checkpoints/RL \
+  --processor_path checkpoints/OmniAgent-RL-7B \
   --num_processes 32
 ```
 
@@ -57,7 +57,7 @@ python inference/parallel_evaluate_gemini.py \
 python inference/parallel_evaluate_gemini.py \
   --dataset_path /path/to/dataset.json \
   --video_prefix /path/to/videos \
-  --processor_path checkpoints/RL \
+  --processor_path checkpoints/OmniAgent-RL-7B \
   --model gemini-2.5-flash \
   --num_processes 16
 ```
@@ -68,7 +68,7 @@ python inference/parallel_evaluate_gemini.py \
 python inference/parallel_evaluate_gemini.py \
   --dataset_path /path/to/dataset.json \
   --video_prefix /path/to/videos \
-  --processor_path checkpoints/RL \
+  --processor_path checkpoints/OmniAgent-RL-7B \
   --max_steps 50 \
   --max_frames_len 60 \
   --max_audio_len 300 \
@@ -81,7 +81,7 @@ python inference/parallel_evaluate_gemini.py \
 python inference/parallel_evaluate_gemini.py \
   --dataset_path /path/to/dataset.json \
   --video_prefix /path/to/videos \
-  --processor_path checkpoints/RL \
+  --processor_path checkpoints/OmniAgent-RL-7B \
   --max_samples 100 \
   --num_processes 8
 ```

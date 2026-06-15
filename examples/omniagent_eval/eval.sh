@@ -1,7 +1,15 @@
 #!/usr/bin/env bash
 set -e
 set -x
-ENGINE=${1:-vllm}
+ENGINE="${ENGINE:-vllm}"
+if [[ $# -gt 0 && "$1" != *=* && "$1" != +* && "$1" != -* ]]; then
+    ENGINE="$1"
+    shift
+fi
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/../.." && pwd)"
+cd "${REPO_ROOT}"
 
 export VLLM_ATTENTION_BACKEND=FLASH_ATTN
 export VLLM_USE_V1=0
@@ -113,7 +121,7 @@ seq_top_ratio=null               # sequence-level hard top-k, ratio 0.2
 entropy_weight=true             # enable entropy weight; set to true to enable
 
 PROJECT_NAME=verl_omni_eval
-MODEL_NAME=OmniAgent_RL
+MODEL_NAME=OmniAgent-RL-7B
 MODE=OmniAgent
 VAL_DATA_NAME=LVBench
 TRAIN_FILE="${TRAIN_FILE:-/path/to/train_data.jsonl}"
@@ -125,6 +133,7 @@ experiment_name=eval_${VAL_DATA_NAME}_${MODEL_NAME}_Step_${MIN_MAX_STEPS}-${max_
 rollout_data_dir=./log_rollout/log_rollout_train/${PROJECT_NAME}/${experiment_name}
 val_data_dir=./log_rollout/log_rollout_val/${PROJECT_NAME}/${experiment_name}
 export TENSORBOARD_DIR=./tensorboard/${PROJECT_NAME}/${experiment_name}
+mkdir -p logs
 
 # ====== Clean Up Old Ray Processes ======
 # || true prevents script exit when no processes to kill
@@ -155,8 +164,8 @@ if [ "$NODE_RANK" -eq 0 ]; then
         algorithm.rollout_correction.rollout_is_threshold=$rollout_is_threshold \
         algorithm.rollout_correction.rollout_rs=$rollout_rs \
         algorithm.rollout_correction.rollout_rs_threshold=$rollout_rs_threshold \
-        data.train_files=${TRAIN_FILE} \
-        data.val_files=${VAL_FILE} \
+        "data.train_files=${TRAIN_FILE}" \
+        "data.val_files=${VAL_FILE}" \
         data.train_batch_size=$train_data_size \
         data.val_batch_size=$val_data_size \
         data.max_prompt_length=$max_prompt_length \
@@ -166,7 +175,7 @@ if [ "$NODE_RANK" -eq 0 ]; then
         data.return_raw_chat=True \
         data.seed=42 \
         +actor_rollout_ref.actor.ignore_exceed=${ignore_exceed} \
-        actor_rollout_ref.model.path=${MODEL_BASE_PATH}/${MODEL_NAME} \
+        "actor_rollout_ref.model.path=${MODEL_BASE_PATH}/${MODEL_NAME}" \
         actor_rollout_ref.actor.optim.lr=1e-6 \
         actor_rollout_ref.actor.optim.warmup_style=constant \
         actor_rollout_ref.actor.optim.lr_warmup_steps=0 \
@@ -236,7 +245,7 @@ if [ "$NODE_RANK" -eq 0 ]; then
         trainer.total_epochs=1 \
         trainer.val_before_train=True \
         trainer.val_only=True "$@" \
-        2>&1 | tee -a logs/${experiment_name}.log 
+        2>&1 | tee -a "logs/${experiment_name}.log"
 
     set -e # restore set -e
 

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -eo pipefail
 
-MODEL_PATH="${MODEL_PATH:-/path/to/model}"
-DATASET_JSONL="${DATASET_JSONL:-/path/to/dataset.jsonl}"
+MODEL_PATH="${MODEL_PATH:-}"
+DATASET_JSONL="${DATASET_JSONL:-}"
 GPU_IDS="${GPU_IDS:-0}"
 OUTPUT_DIR="${OUTPUT_DIR:-./eval_output/auto}"
 MAX_SAMPLES="${MAX_SAMPLES:--1}"
@@ -20,12 +20,31 @@ OMNIAGENT_QUIET_LOGS="${OMNIAGENT_QUIET_LOGS:-true}"
 PYTHONWARNINGS="${PYTHONWARNINGS:-ignore}"
 TOKENIZERS_PARALLELISM="${TOKENIZERS_PARALLELISM:-false}"
 
-cd "$(dirname "$0")"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${REPO_ROOT}"
 
 export OMNIAGENT_QUIET_LOGS
 export PYTHONWARNINGS
 export TOKENIZERS_PARALLELISM
 export PYTHONUNBUFFERED=1
+
+if [[ -z "${MODEL_PATH}" ]]; then
+  echo "MODEL_PATH is required."
+  echo "Example: MODEL_PATH=checkpoints/OmniAgent-RL-7B DATASET_JSONL=/path/to/dataset.jsonl bash demo/launch_eval.sh"
+  exit 1
+fi
+
+if [[ -z "${DATASET_JSONL}" ]]; then
+  echo "DATASET_JSONL is required."
+  echo "Example: MODEL_PATH=checkpoints/OmniAgent-RL-7B DATASET_JSONL=/path/to/dataset.jsonl bash demo/launch_eval.sh"
+  exit 1
+fi
+
+if [[ ! -f "${DATASET_JSONL}" ]]; then
+  echo "DATASET_JSONL not found: ${DATASET_JSONL}"
+  exit 1
+fi
 
 RESOLVED_OUTPUT_DIR="${OUTPUT_DIR}"
 if [[ "$(basename "${OUTPUT_DIR}")" == "auto" ]]; then
@@ -104,7 +123,7 @@ PROGRESS_LOG="${RESOLVED_OUTPUT_DIR}/progress.log"
   echo "  Output: ${RESOLVED_OUTPUT_DIR}"
   echo ""
 
-  python -u omniagent_eval.py "${ARGS[@]}" "$@"
+  python -u demo/omniagent_eval.py "${ARGS[@]}" "$@"
 
   echo ""
   echo "Token Summary..."

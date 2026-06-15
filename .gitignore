@@ -125,6 +125,11 @@ ENV/
 
 
 # local logs
+/logs/
+/log_rollout/
+/eval_output/
+/inference_output/
+/agentic_tmp/
 logs/**/*.log
 log
 log_rollout/**/*.json

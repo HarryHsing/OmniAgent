@@ -4,13 +4,14 @@
 
 set -e
 
-MODEL_PATH_ARG="${1:-}"
-if [ -n "$MODEL_PATH_ARG" ]; then
+MODEL_PATH_ARG=""
+if [[ -z "${MODEL_PATH:-}" && "$#" -gt 0 && "$1" != -* ]]; then
+    MODEL_PATH_ARG="$1"
     shift
 fi
 
 # ============ Default Configuration ============
-MODEL_PATH="${MODEL_PATH:-${MODEL_PATH_ARG:-/path/to/model}}"
+MODEL_PATH="${MODEL_PATH:-${MODEL_PATH_ARG:-}}"
 HOST="${HOST:-0.0.0.0}"
 PORT="${PORT:-7862}"
 TENSOR_PARALLEL="${TENSOR_PARALLEL:-1}"
@@ -28,8 +29,13 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 RAY_TMP_DIR="${RAY_TMP_DIR:-/tmp/ray}"
-rm -rf "${RAY_TMP_DIR}"/*
-echo  "Executed [rm -rf ${RAY_TMP_DIR}/*]"
+if [[ -z "${RAY_TMP_DIR}" || "${RAY_TMP_DIR}" == "/" ]]; then
+    echo "Invalid RAY_TMP_DIR: ${RAY_TMP_DIR}"
+    exit 1
+fi
+mkdir -p "${RAY_TMP_DIR}"
+rm -rf "${RAY_TMP_DIR:?}/"*
+echo  "Cleaned Ray temp dir: ${RAY_TMP_DIR}"
 
 # ============ Function Definitions ============
 
@@ -111,7 +117,9 @@ cleanup() {
 # ============ Main Flow ============
 
 # Switch to project root directory
-cd "$(dirname "$0")/.."
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+cd "${REPO_ROOT}"
 
 # Print banner
 print_banner
@@ -129,7 +137,7 @@ echo ""
 print_config
 
 if [ -z "$MODEL_PATH" ]; then
-    echo -e "${RED}❌ MODEL_PATH is required. Use: bash launch_demo.sh /path/to/model${NC}"
+    echo -e "${RED}❌ MODEL_PATH is required. Use: bash demo/launch_demo.sh /path/to/model${NC}"
     exit 1
 fi
 
@@ -160,20 +168,22 @@ echo "════════════════════════�
 echo ""
 
 # Build command
-CMD="python $DEMO_FILE \
-    --model_path $MODEL_PATH \
-    --host $HOST \
-    --port $PORT \
-    --tensor_parallel_size $TENSOR_PARALLEL \
-    --gpu_memory_utilization $GPU_MEMORY_UTIL"
+CMD=(
+    python "$DEMO_FILE"
+    --model_path "$MODEL_PATH"
+    --host "$HOST"
+    --port "$PORT"
+    --tensor_parallel_size "$TENSOR_PARALLEL"
+    --gpu_memory_utilization "$GPU_MEMORY_UTIL"
+)
 
 if [ -n "$SHARE" ]; then
-    CMD="$CMD --share"
+    CMD+=(--share)
 fi
 
 if [ "$#" -gt 0 ]; then
-    CMD="$CMD $*"
+    CMD+=("$@")
 fi
 
 # Launch
-exec $CMD
+exec "${CMD[@]}"

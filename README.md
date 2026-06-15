@@ -2,10 +2,9 @@
 
 <p align="center">
   <a href="#citation"><img src="https://img.shields.io/badge/Paper-coming%20soon-blue" alt="Paper"></a>
-  <a href="#"><img src="https://img.shields.io/badge/arXiv-coming%20soon-b31b1b" alt="arXiv"></a>
+  <!-- <a href="#"><img src="https://img.shields.io/badge/arXiv-coming%20soon-b31b1b" alt="arXiv"></a> -->
   <a href="https://huggingface.co/harryhsing/OmniAgent-RL-7B"><img src="https://img.shields.io/badge/HF-RL%20Checkpoint-yellow" alt="RL Checkpoint"></a>
   <a href="https://huggingface.co/harryhsing/OmniAgent-SFT-7B"><img src="https://img.shields.io/badge/HF-SFT%20Checkpoint-yellow" alt="SFT Checkpoint"></a>
-  <a href="recipe/sft_agent_final.yaml"><img src="https://img.shields.io/badge/Recipe-SFT-green" alt="SFT Recipe"></a>
 </p>
 
 <p align="center">
@@ -251,6 +250,7 @@ Single-GPU evaluation is supported, but throughput is lower.
 conda create -n omniagent python=3.11 -y
 conda activate omniagent
 
+pip install -U "setuptools<81"
 pip install torch==2.7.0 --index-url https://download.pytorch.org/whl/cu126
 pip install flash-attn==2.7.4.post1 --no-build-isolation
 pip install -r requirements.txt
@@ -272,7 +272,7 @@ Verify the local packages:
 python -c "import verl; import vllm; import flash_attn; print('All imports OK')"
 ```
 
-Download the released checkpoint from Hugging Face and place or symlink it as `checkpoints/RL` for the examples below.
+Download the released checkpoint from Hugging Face and place or symlink it as `checkpoints/OmniAgent-RL-7B` for the examples below.
 
 ---
 
@@ -281,13 +281,13 @@ Download the released checkpoint from Hugging Face and place or symlink it as `c
 ### Single-Sample Inference
 
 ```bash
-bash demo/launch_inference.sh checkpoints/RL assets/example_video_mcq.mp4
+bash demo/launch_inference.sh checkpoints/OmniAgent-RL-7B assets/example_video_mcq.mp4
 ```
 
 The script accepts environment variables for the question, answer, and question type:
 
 ```bash
-MODEL_PATH=checkpoints/RL \
+MODEL_PATH=checkpoints/OmniAgent-RL-7B \
 VIDEO_PATH=assets/example_video_mcq.mp4 \
 QUESTION='Who or what lauds "Immigrant Diaries" as "A SURE FIRE HIT", according to the video?' \
 QUESTION_TYPE=MCQ \
@@ -299,7 +299,7 @@ ANSWER="A" \
 ### Web Demo
 
 ```bash
-bash demo/launch_demo.sh checkpoints/RL
+bash demo/launch_demo.sh checkpoints/OmniAgent-RL-7B
 ```
 
 The demo starts at `http://localhost:7862` by default. It supports built-in examples and uploaded videos directly.
@@ -307,7 +307,7 @@ The demo starts at `http://localhost:7862` by default. It supports built-in exam
 Useful runtime overrides:
 
 ```bash
-MODEL_PATH=checkpoints/RL PORT=8080 TENSOR_PARALLEL=2 GPU_MEMORY_UTIL=0.8 \
+MODEL_PATH=checkpoints/OmniAgent-RL-7B PORT=8080 TENSOR_PARALLEL=2 GPU_MEMORY_UTIL=0.8 \
   bash demo/launch_demo.sh
 ```
 
@@ -315,7 +315,7 @@ MODEL_PATH=checkpoints/RL PORT=8080 TENSOR_PARALLEL=2 GPU_MEMORY_UTIL=0.8 \
 
 ```bash
 GPU_IDS=0,1,2,3 \
-MODEL_PATH=checkpoints/RL \
+MODEL_PATH=checkpoints/OmniAgent-RL-7B \
 DATASET_JSONL=/path/to/dataset.jsonl \
   bash demo/launch_eval.sh
 ```
@@ -386,29 +386,25 @@ Example files:
 ### TAURA
 
 ```bash
-cd examples/omniagent_train
-
 TRAIN_FILE=/path/to/train_data.jsonl \
 VAL_FILE=/path/to/val_data.jsonl \
 MODEL_BASE_PATH=/path/to/models \
-  bash train-TAURA.sh
+  bash examples/omniagent_train/train_TAURA.sh
 ```
 
 ### GRPO Baseline
 
 ```bash
-cd examples/omniagent_train
-
 TRAIN_FILE=/path/to/train_data.jsonl \
 VAL_FILE=/path/to/val_data.jsonl \
 MODEL_BASE_PATH=/path/to/models \
-  bash train-GRPO.sh
+  bash examples/omniagent_train/train_GRPO.sh
 ```
 
 Use dry run mode to verify paths and launch configuration:
 
 ```bash
-DRY_RUN=1 bash train-TAURA.sh
+DRY_RUN=1 bash examples/omniagent_train/train_TAURA.sh
 ```
 
 Key training knobs:
@@ -417,7 +413,7 @@ Key training knobs:
 |----------|---------|-------------|
 | `TRAIN_FILE` | `/path/to/train_data.jsonl` | Training JSONL |
 | `VAL_FILE` | `/path/to/val_data.jsonl` | Validation JSONL |
-| `MODEL_BASE_PATH` | `/path/to/models` | Directory containing `OmniAgent_SFT` |
+| `MODEL_BASE_PATH` | `/path/to/models` | Directory containing `OmniAgent-SFT-7B` |
 | `MICRO_RATIO` | `4` | Samples per GPU for vLLM rollout |
 | `USE_DYNAMIC_STEP` | `True` | Enable duration-adaptive step limit |
 | `MIN_MAX_STEPS` | `5` | Dynamic step lower bound |
@@ -443,7 +439,7 @@ To run a simple scaling sweep:
 
 ```bash
 for steps in 12 22 32 42 52; do
-  MAX_STEPS=$steps GPU_IDS=0,1,2,3 MODEL_PATH=checkpoints/RL \
+  MAX_STEPS=$steps GPU_IDS=0,1,2,3 MODEL_PATH=checkpoints/OmniAgent-RL-7B \
   DATASET_JSONL=/path/to/dataset.jsonl bash demo/launch_eval.sh
 done
 ```

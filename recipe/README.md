@@ -23,7 +23,7 @@ The ms-swift script is not intended to be an exact copy of the internal OmniAgen
 
 The TAURA and GRPO launch scripts live under `examples/omniagent_train/`:
 
-- `train-TAURA.sh`: OmniAgent RL recipe with entropy-weighted TAURA credit assignment.
-- `train-GRPO.sh`: GRPO baseline recipe.
+- `train_TAURA.sh`: OmniAgent RL recipe with entropy-weighted TAURA credit assignment.
+- `train_GRPO.sh`: GRPO baseline recipe.
 
 Keep private data roots, machine-specific paths, and internal service URLs out of committed recipe files. Use local environment variables or untracked config overlays for machine-specific settings.
