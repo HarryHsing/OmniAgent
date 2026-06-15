@@ -27,7 +27,7 @@ fastapi==0.115.14
 oss2==2.19.1
 python-dotenv==1.1.1
 requests==2.32.4
-gradio==5.35.0
+gradio==6.18.0
 psutil==7.0.0
 smart-open==7.3.0.post1
 tensorboard==2.20.0  # required by eval.sh logger; tested: 2.20.0
