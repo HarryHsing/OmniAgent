@@ -1,0 +1,43 @@
+# Public OmniAgent cold-start SFT recipe.
+#
+# Replace placeholder dataset and model paths before launching training. The
+# original internal recipe used more JSONL shards; keep one dataset_class entry
+# for each dataset_path entry if your launcher requires paired lists.
+
+sft_agent_final:
+  args:
+    dataset_path:
+      - /path/to/omniagent_sft/train_LongVALE.ota_trajectories.filtered.jsonl
+      - /path/to/omniagent_sft/train_LongVideoReason.ota_trajectories.filtered.jsonl
+      - /path/to/omniagent_sft/train_MultiHop-EgoQA.ota_trajectories.filtered.jsonl
+      - /path/to/omniagent_sft/train_Video-Holmes.ota_trajectories.filtered.jsonl
+      - /path/to/omniagent_sft/train_VSI-10K.ota_trajectories.filtered.jsonl
+    dataset_class:
+      - MultiTurnAgentDataset
+      - MultiTurnAgentDataset
+      - MultiTurnAgentDataset
+      - MultiTurnAgentDataset
+      - MultiTurnAgentDataset
+    model_name_or_path: Qwen/Qwen2.5-Omni-7B
+    flash_attention: true
+    freeze_audio_encoder: true
+    freeze_vision_encoder: true
+    torch_empty_cache_steps: 4
+    use_lora: false
+    do_train: true
+    per_device_train_batch_size: 1
+    gradient_accumulation_steps: 2
+    learning_rate: 1.0e-5
+    num_train_epochs: 2
+    lr_scheduler_type: linear
+    warmup_ratio: 0.03
+    logging_steps: 4
+    logging_first_step: true
+    save_steps: 1024
+    seed: 42
+    data_seed: 42
+    dataloader_num_workers: 2
+    report_to: tensorboard
+    bf16: true
+    gradient_checkpointing: true
+    skip_memory_metrics: false

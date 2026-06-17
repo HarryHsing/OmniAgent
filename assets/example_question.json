@@ -1,0 +1,26 @@
+[
+  {
+    "video": "assets/example_video_mcq.mp4",
+    "type": "MCQ",
+    "domain": "Entertainment",
+    "question": "Who or what lauds \"Immigrant Diaries\" as \"A SURE FIRE HIT\", according to the video?",
+    "options": ["A. Remote Goat.", "B. The New York Times.", "C. Variety.", "D. IndieWire."],
+    "answer": "A"
+  },
+  {
+    "video": "assets/example_video_tr.mp4",
+    "type": "TR",
+    "domain": "Daily Life",
+    "question": "What are all the time ranges corresponding to the text query: \"A man with tousled dark hair and a beaded necklace thoughtfully shares his perspective, the subtle floral pattern of his light green shirt contrasting against the light-colored wall behind him as he speaks about challenges and roles.\"?",
+    "options": [],
+    "answer": "[51.72, 62.92]"
+  },
+  {
+    "video": "assets/example_video_ff.mp4",
+    "type": "FF",
+    "domain": "Daily Life",
+    "question": "During the montage, what color was the horse that the boy in yellow is riding?",
+    "options": [],
+    "answer": "White"
+  }
+]
