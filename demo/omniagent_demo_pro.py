@@ -898,7 +898,7 @@ def render_video_card(video_path: str, source_label: str) -> str:
         """
 
     meta = probe_video_metadata(video_path)
-    path_text = html.escape(video_path)
+    path_text = html.escape(Path(video_path).name)
     duration_text = format_duration(meta.get("duration"))
     fps = meta.get("fps")
     fps_text = f"{fps:.2f}" if isinstance(fps, (int, float)) else "Unknown"
