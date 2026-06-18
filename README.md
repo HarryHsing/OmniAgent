@@ -2,8 +2,8 @@
 
 <p align="center">
   <a href="#citation"><img src="https://img.shields.io/badge/Conference-ICML%202026-8A2BE2" alt="ICML 2026"></a>
-  <a href="#citation"><img src="https://img.shields.io/badge/Paper-coming%20soon-blue" alt="Paper"></a>
-  <a href="https://arxiv.org/abs/2606.13679"><img src="https://img.shields.io/badge/arXiv-XXXX.XXXXX-b31b1b" alt="arXiv"></a>
+  <!-- <a href="#citation"><img src="https://img.shields.io/badge/Paper-coming%20soon-blue" alt="Paper"></a> -->
+  <a href="https://arxiv.org/abs/2606.19341"><img src="https://img.shields.io/badge/arXiv-2606.19341-b31b1b" alt="arXiv"></a>
   <a href="https://huggingface.co/harryhsing/OmniAgent-RL-7B"><img src="https://img.shields.io/badge/HF-RL%20Checkpoint-yellow" alt="RL Checkpoint"></a>
   <a href="https://huggingface.co/harryhsing/OmniAgent-SFT-7B"><img src="https://img.shields.io/badge/HF-SFT%20Checkpoint-yellow" alt="SFT Checkpoint"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-Apache%202.0-green" alt="License"></a>
@@ -60,7 +60,7 @@
 
 - **ICML 2026** — *Native Active Perception as Reasoning for Omni-Modal Understanding* has been accepted to ICML 2026. 🎉
 - **2026-06** — Released the OmniAgent code, RL/SFT checkpoints, example data formats, and the public SFT recipe.
-- **Coming soon** — Paper and arXiv links.
+- **2026-06** — Paper now available on [arXiv](https://arxiv.org/abs/2606.19341).
 
 ---
 
@@ -259,8 +259,7 @@ Accuracy improves by +6.2% as the max turn budget increases, while actual turns 
 
 ## Resources
 
-- **Paper**: coming soon
-- **arXiv**: coming soon
+- **Paper / arXiv**: [arxiv.org/abs/2606.19341](https://arxiv.org/abs/2606.19341)
 - **Models**: [OmniAgent-RL-7B](https://huggingface.co/harryhsing/OmniAgent-RL-7B) · [OmniAgent-SFT-7B](https://huggingface.co/harryhsing/OmniAgent-SFT-7B)
 - **SFT recipe**: [`recipe/sft_agent_final.yaml`](recipe/sft_agent_final.yaml)
 - **Examples**: [`data/`](data/) and [`assets/`](assets/)
