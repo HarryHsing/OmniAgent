@@ -58,9 +58,10 @@
 
 ## News
 
-- **ICML 2026** — *Native Active Perception as Reasoning for Omni-Modal Understanding* has been accepted to ICML 2026. 🎉
-- **2026-06** — Released the OmniAgent code, RL/SFT checkpoints, example data formats, and the public SFT recipe.
-- **2026-06** — Paper now available on [arXiv](https://arxiv.org/abs/2606.19341).
+- **2026-07** — Invited to give a Booth Talk on OmniAgent at the Alibaba (Qwen) booth, ICML 2026 (#B400, Jul 8, 13:20–13:40, Seoul). Come by to watch and discuss! 🎙️
+- **2026-06** — Released OmniAgent: code, a gym-like active-perception environment, RL/SFT checkpoints, example data formats, and the public SFT recipe.
+- **2026-06** — Paper available on [arXiv](https://arxiv.org/abs/2606.19341).
+- **2026-05** — *Native Active Perception as Reasoning for Omni-Modal Understanding* has been accepted to ICML 2026. 🎉
 
 ---
 
@@ -81,8 +82,8 @@ OmniAgent is trained in two stages: **Agentic SFT** for cold-start exploration, 
 - **Memory consolidation** — each percept is summarized into a persistent textual memory and the raw media is purged, decoupling context cost from video duration.
 - **TAURA** — turn-level entropy rescales advantages to steer credit toward pivotal discovery turns.
 - **Positive test-time scaling** — increasing the maximum turn limit improves accuracy while the actual number of turns saturates adaptively.
-- **A single model, not tool orchestration** — the environment returns only raw frames, audio, or clips; OmniAgent performs all perception and reasoning itself, with no external modules.
-
+- **A single, reusable agent environment** — the environment returns only raw frames, audio, or clips; OmniAgent performs all perception and reasoning itself, with no external tools. It's released as a gym-like `reset` / `step` loop (`agent_system/`), so you can train your own omni-modal models or harness closed-source ones (e.g. Gemini, see `inference/`) in the same Observation–Thought–Action setup.
+  
 ---
 
 ## Method
