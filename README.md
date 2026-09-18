@@ -58,6 +58,7 @@
 
 ## News
 
+- **2026-09** — Our work on [OmniAgent](https://github.com/HarryHsing/OmniAgent) at Qwen has been integrated into [Qwen3.8-Omni-Flash](https://qwen.ai/blog?id=qwen3.8-omni-flash), enabling agentic audio-visual understanding.
 - **2026-09** — Gemini now supports [Agentic Video Understanding](https://blog.google/innovation-and-ai/models-and-research/gemini-models/introducing-agentic-video-in-gemini/), enabling models to navigate long videos and inspect visual, audio, and transcript evidence on demand. This underscores growing momentum in frontier models toward agentic audio-visual understanding through active perception, the central idea explored in [OmniAgent](https://arxiv.org/abs/2606.19341). ([Developer guide](https://ai.google.dev/gemini-api/docs/video-understanding#agentic-video-understanding))
 - **2026-07** — Slides from our ICML 2026 Booth Talk are now available on [Hugging Face Spaces](https://huggingface.co/spaces/harryhsing/OmniAgent-Slides). 📑
 - **2026-07** — Invited to give a Booth Talk on OmniAgent at the Alibaba (Qwen) booth, ICML 2026 (#B400, Jul 8, 13:20–13:40, Seoul). Come by to watch and discuss! 🎙️
